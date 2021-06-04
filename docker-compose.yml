@@ -1,0 +1,29 @@
+version: '3'
+services:
+    druid:
+        build: .
+        network_mode: host
+        volumes:
+            - ./datalake:/datalake
+    node_server:
+        build: ../Simple_REST_Server
+        network_mode: host
+        environment:
+            PORT: '7000'
+            DRUID_SERVER: 'http://localhost:8888'
+        depends_on: 
+            - druid
+
+    etl_server:
+        build: ../Spark_ETL_Server
+        network_mode: host
+        volumes:
+            - ../Spark_ETL_Server/config:/app/config
+            - ./datalake:/datalake
+        environment:
+            JSON_FILE: '/datalake/generated.json.gz'
+            METADATA_FILE: '/app/config/metadata.json'
+            DRUID_SERVER: 'http://localhost:8888/druid/indexer/v1/task'
+            PYSPARK_SUBMIT_ARGS: '--master local[*] pyspark-shell'
+        depends_on: 
+            - node_server
