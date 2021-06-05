@@ -26,4 +26,4 @@ services:
             DRUID_SERVER: 'http://localhost:8888/druid/indexer/v1/task'
             PYSPARK_SUBMIT_ARGS: '--master local[*] pyspark-shell'
         depends_on: 
-            - node_server
+            - druid
