@@ -4,9 +4,12 @@ services:
         build: .
         network_mode: host
         volumes:
+            #Uses datalake folder to be available for the Druid container.
             - ./datalake:/datalake
     node_server:
-        build: ../Simple_REST_Server
+        #Defines the context of the REST API. Be sure to have cloned the repository available at:
+        #https://github.com/Ruriel-SCIO/simple-rest-server
+        build: ../simple-rest-server
         network_mode: host
         environment:
             PORT: '7000'
@@ -15,15 +18,21 @@ services:
             - druid
 
     etl_server:
-        build: ../Spark_ETL_Server
+        #Defines the context of the Spark ETL Server. Be sure to have cloned the repository available at:
+        #https://github.com/Ruriel-SCIO/spark-etl-server
+        build: ../spark-etl-server
         network_mode: host
         volumes:
-            - ../Spark_ETL_Server/config:/app/config
+            #Sets the volume where the ETL Server will read the metadata.
+            - ../spark-etl-server/config:/app/config
+            #Shares the current datalake folder with the container.
             - ./datalake:/datalake
         environment:
+            #Informs where the JSON file is available in the image.
             JSON_FILE: '/datalake/generated.json.gz'
+            #Informs the location of the metadata file in the container
             METADATA_FILE: '/app/config/metadata.json'
-            DRUID_SERVER: 'http://localhost:8888/druid/indexer/v1/task'
+            DRUID_SERVER: 'http://localhost:8888'
             PYSPARK_SUBMIT_ARGS: '--master local[*] pyspark-shell'
         depends_on: 
             - druid
